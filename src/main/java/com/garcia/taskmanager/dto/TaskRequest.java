@@ -2,12 +2,15 @@ package com.garcia.taskmanager.dto;
 
 import com.garcia.taskmanager.model.TaskPriority;
 import com.garcia.taskmanager.model.TaskStatus;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 
 public class TaskRequest {
 
+    @NotBlank(message = "El título es obligatorio")
     private String title;
+
     private String description;
     private TaskStatus status;
     private TaskPriority priority;

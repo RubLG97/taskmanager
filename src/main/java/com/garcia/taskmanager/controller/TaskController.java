@@ -2,9 +2,14 @@ package com.garcia.taskmanager.controller;
 
 import com.garcia.taskmanager.dto.TaskRequest;
 import com.garcia.taskmanager.dto.TaskResponse;
+import com.garcia.taskmanager.model.TaskPriority;
+import com.garcia.taskmanager.model.TaskStatus;
 import com.garcia.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,9 +31,18 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getUserTasks(
+    public ResponseEntity<Page<TaskResponse>> getUserTasks(
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) TaskPriority priority,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(taskService.getUserTasks(userDetails.getUsername()));
+        PageRequest pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 100),
+                Sort.by(Sort.Direction.DESC, "id")
+        );
+        return ResponseEntity.ok(taskService.getUserTasks(userDetails.getUsername(), status, priority, pageable));
     }
 
     @PutMapping("/{id}")

@@ -9,6 +9,8 @@ import com.garcia.taskmanager.model.User;
 import com.garcia.taskmanager.repository.TaskRepository;
 import com.garcia.taskmanager.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -45,6 +47,24 @@ public class TaskService {
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public Page<TaskResponse> getUserTasks(String username, TaskStatus status, TaskPriority priority, Pageable pageable) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        Page<Task> page;
+        if (status != null && priority != null) {
+            page = taskRepository.findByUserAndStatusAndPriority(user, status, priority, pageable);
+        } else if (status != null) {
+            page = taskRepository.findByUserAndStatus(user, status, pageable);
+        } else if (priority != null) {
+            page = taskRepository.findByUserAndPriority(user, priority, pageable);
+        } else {
+            page = taskRepository.findByUser(user, pageable);
+        }
+
+        return page.map(this::mapToResponse);
     }
 
     public TaskResponse updateTask(Long taskId, TaskRequest request, String username) {
